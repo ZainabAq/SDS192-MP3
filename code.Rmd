@@ -44,7 +44,7 @@ langTable <- remakes %>%
 top20 <- top_n(langTable, 20, movies)
 top20 <- top20 %>%
   mutate(langCat = ifelse(info %in% c("Hindi", "Telugu", "Tamil", "Malayalam", "Kannada", "Bengali"), "Indian", info))
-ggplot(top20, aes(x = langCat, y = movies)) + geom_bar(stat="identity")
+ggplot(top20, aes(x = langCat, y = movies, fill=langCat)) + geom_bar(stat="identity")
 ```
 
 
