@@ -21,10 +21,32 @@ db <- dbConnect_scidb(dbname = "imdb")
 #filter for remakes of movies
 remakes <- db %>%
   dbGetQuery("SELECT * FROM imdb.movie_link
-            JOIN title on movie_link.movie_id = title.id
-            WHERE link_type_id in (3,4) 
-            and kind_id = 1;")
+JOIN title on movie_link.movie_id = title.id
+JOIN movie_info on title.id = movie_info.movie_id
+WHERE link_type_id in (3,4) 
+and kind_id = 1
+and info_type_id = 4;
+")
 ```
+
+
+```{r}
+remakes <- remakes[! duplicated(names(remakes))]
+```
+
+```{r}
+langTable <- remakes %>%
+  group_by(info) %>%
+  summarise(movies = n(), lang = n_distinct(info)) 
+```
+
+```{r}
+top20 <- top_n(langTable, 20, movies)
+top20 <- top20 %>%
+  mutate(langCat = ifelse(info %in% c("Hindi", "Telugu", "Tamil", "Malayalam", "Kannada", "Bengali"), "Indian", info))
+ggplot(top20, aes(x = langCat, y = movies)) + geom_bar(stat="identity")
+```
+
 
 
 
