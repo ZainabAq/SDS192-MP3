@@ -1,0 +1,67 @@
+---
+title: "Code"
+author: "Zainab Aqdas Rizvi"
+date: "4/10/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r, message=FALSE, warning=FALSE}
+library(mdsr)
+library(RMySQL)
+db <- dbConnect_scidb(dbname = "imdb")
+```
+
+
+```{r}
+#filter for remakes of movies
+remakes <- db %>%
+  dbGetQuery("SELECT * FROM imdb.movie_link
+JOIN title on movie_link.movie_id = title.id
+JOIN movie_info on title.id = movie_info.movie_id
+WHERE link_type_id in (3,4) 
+and kind_id = 1
+and info_type_id = 4;
+")
+```
+
+
+```{r}
+remakes <- remakes[! duplicated(names(remakes))]
+```
+
+```{r}
+langTable <- remakes %>%
+  group_by(info) %>%
+  summarise(movies = n(), lang = n_distinct(info)) 
+```
+
+```{r}
+top20 <- top_n(langTable, 20, movies)
+top20 <- top20 %>%
+  mutate(langCat = ifelse(info %in% c("Hindi", "Telugu", "Tamil", "Malayalam", "Kannada", "Bengali"), "Indian", info))
+ggplot(top20, aes(x = langCat, y = movies)) + geom_bar(stat="identity")
+```
+
+```{r}
+remadeMovies <- db %>%
+  dbGetQuery("SELECT t.production_year, sum(1) as movies
+FROM title t
+JOIN movie_link ml ON ml.movie_id = t.id
+WHERE t.kind_id = 1
+	and ml.link_type_id in (4) 
+GROUP BY t.production_year;")
+```
+
+
+```{r}
+ggplot(remadeMovies, aes(x = production_year, y = movies)) + 
+        geom_line() + 
+        xlab("Production Year") + 
+        ylab("Number of Remade Movies")
+```
+
