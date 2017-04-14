@@ -53,7 +53,7 @@ remadeMovies <- db %>%
 FROM title t
 JOIN movie_link ml ON ml.movie_id = t.id
 WHERE t.kind_id = 1
-	and ml.link_type_id in (4) 
+	and ml.link_type_id in (3,4) 
 GROUP BY t.production_year;")
 ```
 
@@ -63,5 +63,14 @@ ggplot(remadeMovies, aes(x = production_year, y = movies)) +
         geom_line() + 
         xlab("Production Year") + 
         ylab("Number of Remade Movies")
+
+
 ```
+
+Blogpost Text 
+
+There has been increasing attention in the film industry paid to the proliferation of remakes and sequels of films. In a recent article published on the culture and entertianment site Uproxx "2017’s Movie Sequels, Reboots, And Remakes: The Complete Guide" Donna Dickens and Dan Seitz comment on the prevelence of movie remakes slated to be released in the 2017 production year. They write that "Just what this [prevelance of remakes] says about Western culture and the film industry is probably an endless argument, but it’s pretty astounding just on the face of it." Interested in the question of remakes we dug into the IMBD database in order to exaimine the number of movie remakes produced over time. Since the year 2000 there has been a substantial uptick in the number of movie remakes, although somewhat surprisingly the 21st centurty bump in movie remakes is lower than its peak in the 1930s. This indicates that the most recent wave of movie remakes is actually a resurgence of movie remakes rather than a completely new phenomenon. Another possible explaination for the recent increase in the number of remakes procuded is that the total number of movies procuced in increasing suggesting that the increase in remakes is just the nature of a growing industry. Not only this, but a number of remakes classified by IMBD are movies remade in other languages. It could be that globalization and the spread of movie plots across language and culture could be drving the uptick in movie remakes.  
+
+
+
 
