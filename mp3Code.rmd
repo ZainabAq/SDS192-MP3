@@ -1,0 +1,78 @@
+---
+title: "Code"
+author: "Zainab Aqdas Rizvi"
+date: "4/10/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r, message=FALSE, warning=FALSE}
+library(mdsr)
+library(RMySQL)
+library(ggthemes)
+db <- dbConnect_scidb(dbname = "imdb")
+```
+
+Getting remade movies from the database
+```{r, message=FALSE, warning=FALSE}
+remadeMovies <- db %>%
+  dbGetQuery("SELECT t.production_year, sum(1) as movies
+FROM title t
+JOIN movie_link ml ON ml.movie_id = t.id
+WHERE t.kind_id = 1
+	and ml.link_type_id in (3) 
+GROUP BY t.production_year;")
+```
+
+Plotting the trend for remades from 1894 to 2016. 
+```{r, message=FALSE, warning=FALSE}
+plot = ggplot(remadeMovies, aes(x = production_year, y = movies)) + 
+        xlim(1894,2016) +
+        ylim(0, 150) +
+        geom_line() + 
+        xlab("Production Year") + 
+        ylab("Number of Remade Movies")
+plot + theme_stata() + scale_colour_stata()
+
+```
+
+
+There has been increasing attention in the film industry paid to the proliferation of remakes and sequels of films. In a recent article published on the culture and entertianment site Uproxx "2017’s Movie Sequels, Reboots, And Remakes: The Complete Guide" Donna Dickens and Dan Seitz comment on the prevelence of movie remakes slated to be released in the 2017 production year. They write that "Just what this [prevelance of remakes] says about Western culture and the film industry is probably an endless argument, but it’s pretty astounding just on the face of it." Interested in the question of remakes we dug into the IMBD database in order to exaimine the number of movie remakes produced over time. Since the year 2000 there has been a substantial uptick in the number of movie remakes. This indicates that the most recent wave of movie remakes is actually a resurgence of movie remakes rather than a completely new phenomenon. Another possible explaination for the recent increase in the number of remakes procuded is that the total number of movies procuced in increasing suggesting that the increase in remakes is just the nature of a growing industry. Not only this, but a number of remakes classified by IMBD are movies remade in other languages. It could be that globalization and the spread of movie plots across language and culture could be drving the uptick in movie remakes.  
+
+Getting 'remakes of' movies from the database
+```{r message=FALSE, warning=FALSE}
+#filter for remakes of movies
+remakes <- db %>%
+  dbGetQuery("SELECT * FROM imdb.movie_link
+JOIN title on movie_link.movie_id = title.id
+JOIN movie_info on title.id = movie_info.movie_id
+WHERE link_type_id in (3) 
+and kind_id = 1
+and info_type_id = 4;
+")
+```
+
+Removing duplicate columns from the dataframe
+```{r message=FALSE, warning=FALSE}
+remakes <- remakes[! duplicated(names(remakes))]
+```
+
+Grouping remakes by languages and summarizing the number of movies for each language
+```{r message=FALSE, warning=FALSE}
+langTable <- remakes %>%
+  group_by(info) %>%
+  summarise(movies = n(), lang = n_distinct(info)) 
+```
+
+Looking at the 20 most popular languages for remakes. Bollywood claims to be the largest movie industry in the world so we wanted to see if this claim held true for movie remakes. We combined together languages spoken in India and represented in the top 20 list and gave them the "Indian" designation by mutating another column in our dataframe. We then plotted a bar chart to show the relative popularity of these languages. 
+
+```{r message=FALSE, warning=FALSE}
+top20 <- top_n(langTable, 20, movies)
+top20 <- top20 %>%
+  mutate(langCat = ifelse(info %in% c("Hindi", "Telugu", "Tamil", "Malayalam", "Kannada", "Bengali"), "Indian", info))
+ggplot(top20, aes(x = langCat, y = movies)) + geom_bar(stat="identity") + theme_stata() + scale_colour_stata()
+```
