@@ -16,7 +16,7 @@ library(RMySQL)
 db <- dbConnect_scidb(dbname = "imdb")
 ```
 
-
+SQL query to select remakes and join with the title table and the movie info table
 ```{r}
 #filter for remakes of movies
 remakes <- db %>%
@@ -29,17 +29,19 @@ and info_type_id = 4;
 ")
 ```
 
-
+Removing duplicate columns from the data frame
 ```{r}
 remakes <- remakes[! duplicated(names(remakes))]
 ```
 
+Grouping by the data frame with different languages and calculating the number of remakes for each language
 ```{r}
 langTable <- remakes %>%
   group_by(info) %>%
   summarise(movies = n(), lang = n_distinct(info)) 
 ```
 
+Selecting the top 20 languages and plotitng them on a ggplot. Also creating a unified bar for the Indian languages to show the popularity of Bollywood movies
 ```{r}
 top20 <- top_n(langTable, 20, movies)
 top20 <- top20 %>%
